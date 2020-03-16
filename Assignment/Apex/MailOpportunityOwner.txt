@@ -1,0 +1,26 @@
+global class MailOpportunityOwner implements Database.Batchable<SObject>
+{    
+    global Database.QueryLocator start(Database.BatchableContext BC)
+    {         
+        return Database.getQueryLocator('SELECT Id,Owner.Email FROM Opportunity WHERE LastModifiedDate = LAST_N_DAYS:30');
+    }
+    
+    global void execute(Database.BatchableContext BC, List<Opportunity > opps)
+    {
+        List<Messaging.SingleEmailMessage> emails = new List<Messaging.SingleEmailMessage>();
+        Messaging.SingleEmailMessage singleMail = new Messaging.SingleEmailMessage();
+        for(Opportunity op : opps)
+        {
+            String[] toaddress = new String[]{ op.Owner.Email };
+            singleMail.setSubject('Opportunity not modified in last 30 days');
+            singleMail.setToAddresses(toaddress);
+            singleMail.setHtmlBody('');
+            emails.add(singleMail);
+        }
+        Messaging.sendEmail(emails);
+    }
+    
+    global void finish(Database.BatchableContext BC)
+    {
+    }
+}

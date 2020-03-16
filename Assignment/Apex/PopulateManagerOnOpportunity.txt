@@ -1,0 +1,27 @@
+public class PopulateManagerOnOpportunity 
+{
+    
+    /**
+* Populate Manager for Opportunity List passed from trigger if BillToContact__c is not null
+**/
+    public static void populateManager(List<Opportunity> oppList)
+    {
+        if(oppList == null || oppList.isEmpty())
+            return;
+        List<Id> oppContactIdList = new List<Id>();
+        
+        for(Opportunity opp : oppList)
+            oppContactIdList.add(opp.BillToContact__c);
+        
+        Map<Id,Contact> accountIdContactMap = new Map<Id,Contact>( [SELECT Id, AccountId FROM Contact c
+                                                                    WHERE c.Id in : oppContactIdList]);
+                
+        for(Opportunity opp:oppList)
+        {
+            if(opp.BillToContact__c != null && opp.Manager__c == null)
+            {
+                opp.Manager__c = accountIdContactMap.get(opp.BillToContact__c).AccountId;
+            }
+        }
+    }
+}

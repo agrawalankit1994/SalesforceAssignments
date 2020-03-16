@@ -1,0 +1,38 @@
+public class UpdateAccountWithContactId {
+    
+    /**
+      * Updates ContactIDs__c field of Account with related Contact Id(s)
+     **/
+    public static void updateAccountWithContactID(ID contactId)
+    {
+        if(contactId == null)
+            return;
+        
+        Contact contactObj = [SELECT Account.ContactIDs__c, AccountId FROM Contact WHERE id =: contactId].get(0);
+        String contactIdsInAccount=contactObj.Account.ContactIDs__c;
+        Id accountId = contactObj.AccountId;
+        Account contactAccount = contactObj.Account;
+        if(contactAccount.ContactIDs__c.contains(contactId))
+        {
+            return;
+        }
+        List<Contact> listOfContact = [SELECT Id FROM Contact WHERE Account.Id =: accountId];
+        List<ID> listOfContactId=new List<ID>();
+        for(Contact c : listOfContact)
+            listOfContactId.add(c.Id);
+        String contactListString = String.join(listOfContactId,',');
+        if(contactIdsInAccount == null)
+        {
+            contactAccount.ContactIDs__c = contactListString;
+            update contactAccount;
+        }
+        else
+        {
+            if(!contactIdsInAccount.contains(contactId))
+            {
+                contactAccount.ContactIDs__c = contactListString;
+                update contactAccount;
+            }
+        }        
+    }
+}

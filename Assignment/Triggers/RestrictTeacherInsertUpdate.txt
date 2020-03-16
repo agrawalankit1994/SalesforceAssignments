@@ -1,0 +1,9 @@
+TRIGGER RestrictTeacherInsertUpdate ON Contact (before UPDATE)
+{    
+    for(Contact teacherObj : [SELECT Name,Id,(SELECT Subject__c,Id FROM Teaches__r where Subject__c includes ('Hindi'))
+                              FROM Contact WHERE Id IN: Trigger.newMap.keySet()])
+    {
+        if(teacherObj.Teaches__r != null && teacherObj.Teaches__r.size() > 0)
+            Trigger.newMap.get(teacherObj.Id).addError('Cannot update this teacher as he teaches Hindi');            
+    }
+}

@@ -1,0 +1,12 @@
+trigger UpdateCloseDateInOpportunity ON Opportunity (before UPDATE)
+{
+    for(Opportunity opp : Trigger.New)
+    {
+        Opportunity oldOpp = Trigger.OldMap.get(opp.Id);
+        if((opp.StageName.equalsIgnoreCase('CLOSED WON') || opp.StageName.equalsIgnoreCase('CLOSED LOST'))
+           && (!oldOpp.StageName.equalsIgnoreCase('CLOSED WON') ||  !oldOpp.StageName.equalsIgnoreCase('CLOSED LOST')))
+        {
+            opp.CloseDate = System.today();
+        }
+    }
+}

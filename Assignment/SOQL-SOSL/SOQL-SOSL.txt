@@ -1,0 +1,16 @@
+1. SELECT first_name__c,last_name__c,date_of_birth__c, sex__c FROM Student__c WHERE last_name__c LIKE 's%'
+2. SELECT first_name__c,last_name__c FROM Student__c WHERE Student__c.Class__r.Name LIKE 'X%'
+3. SELECT first_name__c,last_name__c,Student__c.Class__r.Name FROM Student__c
+4. SELECT Name,(SELECT first_name__c FROM Students__r) FROM Class__c
+5. SELECT first_name__c FROM Student__c WHERE Class__r.Class_Teacher__r.Name LIKE 'S%'(how to show the name)
+6. SELECT first_name__c,date_of_birth__c  FROM Student__c WHERE date_of_birth__c > 2000-01-01
+7.SELECT Id,Name, LastModifiedDate FROM Lead where LastModifiedDate = LAST_N_DAYS:30
+8.SELECT Name,(SELECT first_name__c FROM Students__r WHERE first_name__c LIKE 'A%') FROM Class__c
+9. SELECT subject__c,Teacher__r.Name FROM Teach__c WHERE subject__c includes ('Hindi;English')
+10.SELECT Name,(SELECT Name,Subject__c FROM Teaches__r WHERE Subject__c INCLUDES ('Hindi','Maths')),(SELECT First_Name__c FROM Students__r) FROM Class__c  WHERE Id IN (SELECT Class__c FROM Teach__c WHERE Subject__c INCLUDES ('Hindi','Maths'))
+11.SELECT Name, Number_Of_Students__c FROM Class__c
+12.SELECT count(Name) FROM Student__c group by CALENDAR_MONTH(date_of_birth__c) order by CALENDAR_MONTH(date_of_birth__c) asc
+13.FIND {"John"} IN Name Fields RETURNING Student__c(name),contact(name)
+14.FIND {"John"} IN ALL Fields RETURNING Student__c(name WHERE sex__c LIKE 'Male'),contact(name WHERE sex__c LIKE 'Male')
+
+https://developer.salesforce.com/docs/atlas.en-us.soql_sosl.meta/soql_sosl/sforce_api_calls_soql_relationships_and_custom_objects.htm

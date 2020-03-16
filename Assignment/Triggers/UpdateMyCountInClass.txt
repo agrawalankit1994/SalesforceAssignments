@@ -1,0 +1,39 @@
+trigger UpdateMyCountInClass on Student__c (before insert,before update) 
+{    
+    Set<Id> classIds = new Set<Id>();
+    for (Student__c student : trigger.New)
+        classIds.add(student.Class__c);
+    
+    Map<Id, Class__c> classes = new Map<Id, Class__c>([SELECT MyCount__c , MaxSize__c, (SELECT Name FROM Students__r) 
+                                                       FROM Class__c WHERE Id IN : classIds]);
+    List<Student__c> studentList = new List<Student__c>();
+    if(trigger.isInsert)
+    {
+        for(Student__c student : Trigger.New)
+        {
+            if(classes.get(student.Class__c).MyCount__c < classes.get(student.Class__c).MaxSize__c)
+                classes.get(student.Class__c).MyCount__c += 1;
+            else
+                student.addError('Class is already occupied');
+        }
+    }
+    // Not usable for Master Detail relationship
+   /* if(trigger.isUpdate)
+    {
+        Set<Id> classIdsOld = new Set<Id>();
+        for (Student__c student : Trigger.Old)
+            classIdsOld.add(student.Class__c);
+        Map<Id, Class__c> classesOld = new Map<Id, Class__c>([SELECT MyCount__c ,(SELECT Name FROM Students__r) 
+                                                              FROM Class__c WHERE Id IN :classIdsOld]);
+        for(Student__c student : Trigger.New)
+        {
+            if(classesOld.get(student.Class__c).MyCount__c != classesOld.get(student.Class__c).MyCount__c)
+            {
+                classes.get(student.Class__c).MyCount__c += 1;
+                classesOld.get(student.Class__c).MyCount__c -= 1;
+            }
+        } 
+        update classesOld.values();
+    }*/
+    update classes.values();
+}

@@ -1,0 +1,17 @@
+trigger DeleteStudentsOfClass ON Class__c (after update) 
+{    
+    Map<Id,Class__c> studentClassIdMap = new Map<Id,Class__c>([SELECT id ,(SELECT id FROM Students__r) 
+                                                               FROM Class__c WHERE Id IN : trigger.OldMap.keySet()]);
+    List<Student__c> listOfStudentList = new List<Student__c>();
+    for(Class__c classObj : trigger.New)
+    {
+        if(classObj.Custom_Status__c != null  && classObj.Custom_Status__c.equalsIgnoreCase('Reset') &&
+           (trigger.oldMap.get(classObj.Id).Custom_Status__c == null || 
+            !trigger.oldMap.get(classObj.Id).Custom_Status__c.equalsIgnoreCase('Reset')))
+        {
+            List<Student__c> studentList = studentClassIdMap.get(classObj.Id).Students__r;
+            listOfStudentList.addAll(studentList);
+        }
+    }
+    delete listOfStudentList;
+}

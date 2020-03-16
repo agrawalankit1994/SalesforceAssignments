@@ -1,0 +1,20 @@
+TRIGGER RestrictStudentInsertion ON Student__c (before INSERT) 
+{  
+    Set<Id> classIds = new Set<Id>();
+    for (Student__c student : trigger.New)
+        classIds.add(student.Class__c);
+    Map<Id,Decimal> studentsInClass = new Map<Id,Decimal>();
+    Map<Id, Class__c> classes = new Map<Id, Class__c>([SELECT MaxSize__c,(SELECT Name FROM Students__r) 
+                                                       FROM Class__c WHERE Id IN : classIds]);
+    for(Class__c classObj : classes.values())
+        studentsInClass.put(classObj.Id, classObj.Students__r.size());
+    for(Student__c student : trigger.New)
+    {
+        Class__c classObj = classes.get(student.Class__c);
+        Decimal noOfStudents = studentsInClass.get(student.Class__c)+1;
+        if(noOfStudents > classObj.MaxSize__c)
+            student.addError('class size already full');
+        else
+            studentsInClass.put(student.Class__c,noOfStudents);
+    }
+}

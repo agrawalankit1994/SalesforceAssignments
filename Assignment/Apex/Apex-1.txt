@@ -1,0 +1,94 @@
+public class StudentSearch
+{
+    
+    /**
+     * Returns students in a class
+     * */
+    
+    public static List<Student__c> getStudents(Id classId)
+    {
+        if(classId == null || classId.equals(''))
+            return null;
+        return [SELECT first_name__c, last_name__c FROM Student__c WHERE Student__c.Class__r.Id = :classId];
+    }
+    /**
+     * Returns class Students Map
+     * */
+    
+    public static Map<String,Set<Id>> getStudentClassMap()
+    {        
+        Map<String,Set<Id>> classStudentMap = new Map<String,Set<Id>>();
+        for(Class__c classObj : [SELECT Name, (SELECT Id FROM Students__r)  FROM Class__c])
+        {
+            Set<Id> studentIds = new Set<Id>();
+            for(Student__c student : classObj.Students__r)
+            {
+                studentIds.add(student.Id);
+            }
+            classStudentMap.put(classObj.Name, studentIds);
+        }
+        return classStudentMap;
+    }
+    /**
+     * Calculates the working days between 2 dates
+     * */
+    
+    public static Integer getWorkingDays(Date d1, Date d2)
+    { 
+        //1-Monday
+        //d1=Date.newInstance(2020, 2, 7);
+        //d2=Date.newInstance(2020, 2, 27);
+        Integer workingDays = 0;
+        //Get the day from Date
+        DateTime myDateTime = DateTime.newInstance(d1, Time.newInstance(0,0,0,0));
+        Integer dayOfWeek = Integer.valueOf(myDateTime.format('u'));
+        
+        //Backdate both dates to Monday and add/subtract same days from working days
+        if(dayOfWeek <= 5)
+        {
+            workingDays -= dayOfWeek-1;
+            d1 = d1.addDays(-(dayOfWeek-1));
+        }
+        else
+        {
+            workingDays -= 5;
+            d1 = d1.addDays(-5);
+        }
+        
+        // For d2
+        myDateTime = DateTime.newInstance(d2, Time.newInstance(0,0,0,0));
+        dayOfWeek = Integer.valueOf(myDateTime.format('u'));
+        
+        if(dayOfWeek <= 5) 
+        {
+            workingDays += dayOfWeek - 1;
+            d2 = d2.addDays(-(dayOfWeek - 1));
+        }
+        else
+        {
+            workingDays += 5;
+            d2 = d2.addDays(-5);
+        }        
+        Integer numberOfDays = d1.daysBetween(d2);        
+        Integer weekendCount = (numberOfDays/7)*2;
+        workingDays += numberOfDays-weekendCount-1;
+        return workingDays;
+    }
+    /**
+     * List of SObjects in the Org returned
+     * */
+    
+    public static List<String> getSObjectList()
+    {
+        List<String> sObjectList = new List<String>();        
+        for(String objName : Schema.getGlobalDescribe().keySet())
+        {            
+            if(!(objName.containsIgnoreCase('history') || objName.containsIgnoreCase('tag') ||
+                 objName.containsIgnoreCase('share') || objName.containsIgnoreCase('feed')))
+            {  
+                sObjectList.add(objName);
+            }            
+        }
+        return sObjectList;
+    }
+}

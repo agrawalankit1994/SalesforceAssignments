@@ -1,0 +1,4 @@
+trigger CallMethodOnOpportunityUpdate on Opportunity (before update) {
+
+    PopulateManagerOnOpportunity.populateManager(Trigger.New);
+}
