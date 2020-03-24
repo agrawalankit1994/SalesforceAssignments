@@ -1,0 +1,38 @@
+/*
+ * Utility class to create data for TestClassHavingFemale
+ */
+public class TestClassHavingFemaleUtility 
+{  
+    /*
+     * Creates classes along with students
+     */ 
+    public static list<Class__c> CreateClass(Integer noOfClass, Integer noOfGirls)
+    {
+        Integer noOfBoysPerClass = 10;
+        List<Class__c> classes = new List<Class__c>();
+        List<Student__c> students = new List<Student__c>();
+        for(Integer i = 0 ; i<noOfClass;i++)
+        {
+            Class__c newClass = new Class__c(name='test'+i);
+            classes.add(newClass);
+        }
+        INSERT classes;
+        for(Integer j = 0;j < noOfClass; j++)
+        {
+            Class__c cls= classes[j];
+            Integer girls=0;
+            for(Integer k = 0; k<noOfGirls + noOfBoysPerClass; k++)
+            {
+                if(girls < noOfGirls)
+                {
+                    students.add(new Student__c(last_Name__c='Name'+j+k,sex__c='Female',class__c=cls.Id));
+                    girls++;
+                }
+                else
+                    students.add(new Student__c(last_Name__c='Name'+j+k,sex__c='Male',class__c=cls.Id));
+            }
+        }
+        INSERT students;
+        return classes;
+    }
+}

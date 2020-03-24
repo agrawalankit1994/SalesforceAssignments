@@ -1,0 +1,17 @@
+@isTest
+public class CreateStudentsUtility
+{    
+    /*
+     * Create class object with limit and related students
+     */
+    public static List<Student__c> createStudents(Integer noOfStudents,Integer classLimit)
+    {        
+        Class__c cls = new Class__c(name = 'testClass', maxSize__c = classLimit);
+        insert cls;
+        System.debug('Id class: '+cls.Id);
+        List<Student__c> students = new List<student__c>();
+        for(Integer j = 0; j<noOfStudents;j++)
+            students.add(new Student__c(last_name__c = 'Name'+j,class__c = cls.Id));
+        return students;
+    }    
+}

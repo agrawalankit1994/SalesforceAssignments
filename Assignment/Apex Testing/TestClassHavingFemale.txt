@@ -1,0 +1,62 @@
+/*
+ * Test class for ClassHavingFemale trigger
+ */
+@isTest
+private class TestClassHavingFemale {
+    /*
+     * Test to delete class with one girl
+     */
+    @isTest
+    static void classWithOneGirl()
+    {
+        List<Class__c> classes = TestClassHavingFemaleUtility.createClass(1,1);
+        Test.startTest();
+        Database.DeleteResult result = Database.delete(classes[0],false);
+        Test.stopTest();
+        System.assert(result.isSuccess());    
+    }
+
+    /*
+     * Test to delete class with more than one girl
+     */
+    @isTest
+    static void classWithGirls()
+    {
+        List<Class__c> classes = TestClassHavingFemaleUtility.createClass(1,4);
+        Test.startTest();
+        Database.DeleteResult result = Database.delete(classes[0],false);
+        Test.stopTest();
+        System.assert(!result.isSuccess());
+        System.assertEquals('Cant delete class having more than 1 Female Students', result.getErrors()[0].getMessage());            
+    }
+    
+    /*
+     * Test to delete bulk classes with more than one girl
+     */
+    @isTest
+    static void ClassesWithGirls()
+    {
+        List<Class__c> classes = TestClassHavingFemaleUtility.createClass(10,10);
+        Test.startTest();
+        Database.DeleteResult[] results = Database.delete(classes,false);
+        Test.stopTest();
+        for(Database.DeleteResult result : results)
+        {
+            System.assert(!result.isSuccess());
+            System.assertEquals('Cant delete class having more than 1 Female Students', result.getErrors()[0].getMessage()); 
+        }
+    }
+    /*
+     * Test to delete bulk classes with no girl
+     */
+    @isTest
+    static void ClassesWithNoGirls()
+    {
+        List<Class__c> classes = TestClassHavingFemaleUtility.createClass(10,0);
+        Test.startTest();
+        Database.DeleteResult[] results = Database.delete(classes,false);
+        Test.stopTest();
+        for(Database.DeleteResult result : results)
+            System.assert(result.isSuccess());        
+    }    
+}

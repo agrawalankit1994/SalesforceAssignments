@@ -1,0 +1,21 @@
+/*
+ * Utility class to create data for TestDeleteStudentsOfClass
+ */ 
+public class DeleteStudentsOfClassUtility 
+{
+    /*
+     * Creates a class and related students
+     */ 
+    public static Class__c createClass(Integer noOfStudents)
+    {        
+        Class__c cls = new Class__c(name = 'Demo Class', MaxSize__c = 50);
+        INSERT cls;
+        List<Student__c> students = new List<Student__c>();
+        for(Integer j = 0; j < noOfStudents; j++)
+        {
+            students.add(new Student__c(last_name__c = 'LastName' + j, class__c = cls.Id));
+        }
+        INSERT students;
+        return cls;
+    }    
+}

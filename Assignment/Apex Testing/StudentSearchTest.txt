@@ -1,0 +1,52 @@
+@isTest
+private class StudentSearchTest
+{   
+    @isTest static void getStudentsTest()
+    {
+        List<Student__c> students = new List<Student__c>();
+        Class__c classObj = new Class__c(name='Class11', MaxSize__c=10 );
+        INSERT classObj;
+       // students = new List<Student__c>();
+        Student__c s1 = new Student__c(last_name__c='Aryan');
+        s1.Class__c = classObj.Id;
+        Student__c s2 = new Student__c(last_name__c='Aryan1');
+        s2.Class__c = classObj.Id;
+        students.add(s1);
+        students.add(s2);        
+        INSERT students;
+       // Class__c classObj = [SELECT Id, (SELECT Name FROM Students__r) FROM Class__c].get(0);
+        System.debug('classObj: '+classObj);
+       // List<Student__c> students = classObj.Students__r;
+        List<Student__c> studentsReturned = StudentSearch.getStudents(classObj.Id);
+        System.assertEquals(students.size(),studentsReturned.size());
+    }
+    
+    
+    @isTest(seeAllData = true) static void getStudentClassMapTest()
+    {
+        Map<String,Set<Id>> studentClassMap = StudentSearch.getStudentClassMap();
+        Integer numberOfClasses = [SELECT id FROM Class__c].size();
+        System.debug('students:'+studentClassMap);
+        System.assertEquals(numberOfClasses,studentClassMap.size());
+    }
+    
+    @isTest static void getWorkingDaysTest()
+    {
+        Date d1=Date.newInstance(2020, 2, 7);
+        Date d2=Date.newInstance(2020, 2, 27);
+        Integer workingDays = StudentSearch.getWorkingDays(d1,d2);
+        System.assertEquals(13,workingDays);
+        d1=Date.newInstance(2020, 2, 9);
+        d2=Date.newInstance(2020, 2, 28);
+        workingDays = StudentSearch.getWorkingDays(d1,d2);
+        System.assertEquals(14,workingDays); 
+    }
+    
+     @isTest(seeAllData = true) static void getSObjectListTest()
+    {
+        List<String> sObjectList= StudentSearch.getSObjectList();
+        for(String s: sObjectList)
+            System.debug('s: '+s);
+        System.assert(sObjectList.contains('class__c'));
+    }
+}

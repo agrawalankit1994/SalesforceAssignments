@@ -1,0 +1,12 @@
+@isTest(SeeAllData=true)
+public class ScheduledBatchableOpportunityTest 
+{
+    @isTest
+    public static void mailTest()
+    {
+        Test.startTest();
+        ScheduledBatchableOpportunity ml = new ScheduledBatchableOpportunity();
+        String jobId = System.schedule('mail test' , '0 0 * * * ?',ml);
+        Test.stopTest();
+    }
+}
