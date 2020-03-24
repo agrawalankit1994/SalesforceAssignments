@@ -1,0 +1,15 @@
+<apex:page controller="LookUpOpportunityController">
+    <apex:form >
+        <apex:pageBlock >
+            <apex:selectRadio value="{!selectedContact}">
+                <apex:selectOptions value="{!contactOptions}"></apex:selectOptions>
+            </apex:selectRadio>
+            <apex:pageBlockButtons location="top">
+                <apex:commandButton action="{!saveContact}" value="Save" />
+                <apex:commandButton action="{!clearContact}" value="Clear" />
+                <apex:commandButton action="{!cancel}" value="Cancel" />
+                <apex:outputText value="{!selectedContact}"></apex:outputText>
+            </apex:pageBlockButtons>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>
