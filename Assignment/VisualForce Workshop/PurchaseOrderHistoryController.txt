@@ -1,0 +1,250 @@
+public class PurchaseOrderHistoryController 
+{
+    private String getProductsQuery;
+    public String productName {get; set;}
+    private Integer startingPageRecord {get; set;}
+    private Integer endingPageRecord {get; set;}
+    public Boolean renderProducts {get; set;}
+    public Boolean renderCart {get; set;}
+    public Boolean renderInvoice {get; set;}
+    public Boolean isSorted {get; set;}
+    
+    public PurchaseOrderHistoryController()
+    {
+        renderProducts = false;
+        renderCart = false;
+        renderInvoice = false ;
+        makeItReadOnly = false;
+        selectedWrapProducts = new List<WrapProduct>();
+        tempProductList = new List<WrapProduct>();
+        tempProducts = new List<Product2>();
+        wrapProductMap = new Map<Id,WrapProduct>();
+        for(Product2 product : getproducts())
+        {
+            wrapProductMap.put(product.Id,new WrapProduct(product));
+        }
+    }
+    
+    /* ----------------------------- Product Section ------------------------------------ */
+    
+    List<Product2> tempProducts;
+    
+    public ApexPages.StandardSetController setConProduct
+    {
+        get 
+        {
+            if(setConProduct==null)
+            {
+                setConProduct = new ApexPages.StandardSetController(tempProducts);
+                setConProduct.setPageSize(10) ;
+            }
+            return setConProduct;
+        }
+        set;
+    }
+    
+    public list<Product2> getProducts()
+    {
+        tempProducts = [SELECT Name, ProductCode, Price__c, Quantity__c FROM Product2];
+        setConProduct.setSelected(tempProducts);
+        return tempProducts;
+    }
+    
+    public Integer getStartingPageRecord() 
+    {
+        startingPageRecord = setConProduct.getPageNumber() * setConProduct.getPageSize() - (setConProduct.getPageSize() - 1);
+        return startingPageRecord;
+    }
+    
+    public Integer getEndingPageRecord()
+    {
+        endingPageRecord = setConProduct.getPageNumber() * setConProduct.getPageSize() ;
+        return Math.min(endingPageRecord,setConProduct.getResultSize());
+    }
+    
+    public void searchProduct() 
+    {
+        tempProductList.clear();
+        tempProducts.clear();
+        for(Id key : wrapProductMap.keySet())
+        {
+            if(wrapProductMap.get(key).product.Name.containsIgnoreCase(productName))
+            {
+                tempProductList.add(wrapProductMap.get(key));
+                tempProducts.add(wrapProductMap.get(key).product);
+            }
+        }
+        setConProduct = null;
+        setConProduct.setSelected(tempProducts);  
+    }
+        
+    public Map<Id,WrapProduct> wrapProductMap {get; set;}
+    public List<WrapProduct> tempProductList {get ; set ;}
+    public List<WrapProduct> selectedWrapProducts {get; set;}
+    public Id wrappedProductId {get;set;}
+    public Integer previousQuantity {get;set;}
+    public boolean makeItReadOnly {get;set;}
+    
+    public class WrapProduct
+    {
+        public Product2 product {get; set;}
+        public Boolean selected {get; set;}
+        public Integer quantity {get;set;}
+        
+        public WrapProduct(Product2 product) 
+        {
+            this.product = product;
+            selected = false;
+            quantity = 1;
+        }
+    }
+    
+    public List<WrapProduct> getWrapProducts()
+    {
+        tempProductList.clear();
+        for(Product2 product : (List<Product2>) setConProduct.getRecords()) 
+        {
+            tempProductList.add(wrapProductMap.get(product.Id));
+        }
+        return tempProductList;
+    }
+    
+    public void addSelected() 
+    {        
+        for(Id key : wrapProductMap.keySet())
+        {
+            if(wrapProductMap.get(key).selected == true && wrapProductMap.get(key).product.quantity__c > 0 )
+            {
+                if(!selectedWrapProducts.contains(wrapProductMap.get(key)))
+                {
+                    selectedWrapProducts.add(wrapProductMap.get(key));
+                }
+                else
+                {
+                    wrapProductMap.get(key).quantity++;
+                }
+                wrapProductMap.get(key).product.quantity__c -- ;
+            }
+        }
+        if(selectedWrapProducts.size() > 0)
+        {
+            renderCart = true;
+        }
+    }
+    
+    public List<WrapProduct> getCartItems() 
+    {
+        return selectedWrapProducts;
+    }
+    
+    public void updateQuantity() 
+    {   
+        for(Integer index = 0 ; index < selectedWrapProducts.size() ; index++ ) 
+        {
+            if(selectedWrapProducts[index].product.Id == wrappedProductId)
+            {
+                if(selectedWrapProducts[index].quantity <= 0 || (selectedWrapProducts[index].quantity - previousQuantity) > selectedWrapProducts[index].product.quantity__c)
+                {
+                    selectedWrapProducts[index].quantity = previousQuantity;
+                    return;
+                }
+                selectedWrapProducts[index].product.quantity__c += previousQuantity - selectedWrapProducts[index].quantity ;
+            }
+        } 
+    }
+    
+   /* public void setPreviousQuantity() 
+    {
+        
+    }*/
+    
+    public void removeFromCart()
+    {
+        for(Integer index = 0 ; index < selectedWrapProducts.size() ; index++ )
+        {
+            if(selectedWrapProducts[index].product.Id == wrappedProductId)
+            {
+                selectedWrapProducts[index].product.quantity__c += selectedWrapProducts[index].quantity;
+                selectedWrapProducts[index].selected = false;
+                selectedWrapProducts.remove(index); 
+            }
+        }
+        if(selectedWrapProducts.size() == 0)
+        {
+            renderCart = false;
+        }
+    }
+    
+    public void checkout() 
+    {
+        renderInvoice = true;
+        makeItReadOnly = true;
+    }
+        
+    private Decimal totalPrice = 0; 
+    private Integer startingPageRecordOrder {get;set;}
+    private Integer endingPageRecordOrder {get;set;}
+    
+    public ApexPages.StandardSetController setConOrder
+    {
+        get{
+            if(setConOrder==null) 
+            {
+                setConOrder = new ApexPages.StandardSetController(Database.query('SELECT Id, Order_Price__c, Order_Status__c FROM PurchaseOrder__c'));
+                setConOrder.setPageSize(10) ;
+            }
+            return setConOrder;
+        }
+        set;
+    }
+    
+    public Integer getStartingPageRecordOrder() 
+    {
+        startingPageRecordOrder = setConOrder.getPageNumber() * setConOrder.getPageSize() - (setConOrder.getPageSize() - 1);
+        return startingPageRecordOrder;
+    }
+    
+    public Integer getEndingPageRecordOrder()
+    {
+        endingPageRecordOrder = setConOrder.getPageNumber() * setConOrder.getPageSize() ;
+        return Math.min(endingPageRecordOrder,setConOrder.getResultSize());
+    }
+    
+    public List<PurchaseOrder__c> getOrders() 
+    {
+        return (List<PurchaseOrder__c>)setConOrder.getRecords();
+    }
+    
+    
+    public void addPurchase()
+    {
+        renderProducts = true;
+    }
+    
+    public Decimal getTotalOrderPrice()
+    {
+        totalPrice = 0; 
+        for(Integer index = 0 ; index < selectedWrapProducts.size() ; index++ )
+        {
+            totalPrice += selectedWrapProducts[index].product.price__c * selectedWrapProducts[index].quantity;
+        }
+        return totalPrice;
+    }
+    
+    public pageReference placeOrder()
+    {
+        PurchaseOrder__c newOrder = new PurchaseOrder__c(Order_Price__c  = totalPrice , Order_Status__c  = 'Pending');
+        INSERT newOrder ; 
+        List<Cart__c> cartList = new List<Cart__c>();
+        List<Product2> productsToUpdate = new List<Product2>();
+        for(WrapProduct wrap : selectedWrapProducts) 
+        {
+            cartList.add( new cart__c(PurchaseOrder__c = newOrder.Id , product__c = wrap.product.Id , quantity__c = wrap.quantity , 
+                                                   total__c = wrap.quantity * wrap.product.price__c , cartStatus__c = 'cleared'));
+            productsToUpdate.add(wrap.product);
+        }
+        INSERT cartList;
+        UPDATE productsToUpdate;
+        return new PageReference('/'+newOrder.Id);
+    }  
+}
