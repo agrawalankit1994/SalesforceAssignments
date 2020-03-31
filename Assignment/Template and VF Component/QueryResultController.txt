@@ -1,0 +1,156 @@
+public class QueryResultController 
+{
+    private Integer counter=0;
+    private Integer list_size=5;
+    public Integer total_size;  
+    public String queryToExecute;
+    public String queryToSort;
+    public List<String> lstFields{get; private set;}
+    public List<SObject> lstRecords;
+    public Integer startingPageRecord{get;set;}
+    public Integer endingPageRecord{get;set;}
+    public Integer pageNumber {get;set;}
+    public Integer totalPages;
+    public String fieldName{get;set;}
+    public Boolean renderMessage{get;set;}
+    public Integer currentPage{get;set;}
+    
+    public QueryResultController()
+    {
+        currentPage = 1;
+        queryToExecute = '';
+        queryToSort = '';
+        renderMessage = false;
+        lstRecords = new List<SObject>();
+        lstFields = new List<String>();
+        fieldName = null;
+        pageNumber = currentPage;
+    }
+    
+    public List<SObject> getLstRecords()
+    {
+        String query = queryToExecute;
+        if(queryToSort != '')
+            query += queryToSort;
+        try
+        {
+            total_size = Database.query(query).size();
+            query += ' LIMIT :list_size OFFSET :counter ';
+            lstRecords = Database.query(query);
+            if(lstRecords.isEmpty())
+            {
+                ApexPages.addMessage(new ApexPages.message(ApexPages.Severity.INFO,'No Records Found'));
+                return null;
+            }
+            startingPageRecord = counter;
+            endingPageRecord = counter + list_size;
+            if(lstFields.isEmpty())
+                lstFields.addAll(lstRecords[0].getPopulatedFieldsAsMap().keySet());
+        }
+        catch(QueryException ex) 
+        {
+            ApexPages.addMessages(ex);
+            renderMessage = true;
+        }
+        return lstRecords;
+    }
+    
+    public String getQueryToExecute() 
+    {
+        return this.queryToExecute;
+    }
+    
+    public void setQueryToExecute(String queryString)
+    {
+        if(!this.queryToExecute.equalsIgnoreCase(queryString))
+        {
+            this.queryToExecute = queryString;
+            renderMessage = false;
+        } 
+    }
+    
+    public void sortData()
+    { 
+        if(queryToSort.containsIgnoreCase('ORDER BY')) 
+        {
+            queryToSort = queryToSort.subString(0, queryToSort.indexOfIgnoreCase('ORDER BY') - 1);
+        }
+        queryToSort = queryToSort + ' ORDER BY ' + this.fieldName;
+    }
+    
+    public void first() 
+    { 
+        currentPage = 1;
+        counter = 0;
+    }
+    public void goToPage() 
+    { 
+        if(getTotalPages()<pageNumber)
+        {
+            counter = 0;
+            currentPage = 1;
+            pageNumber = currentPage;
+            ApexPages.addMessage(new ApexPages.message(ApexPages.Severity.ERROR,'Invalid Page Number Entered'));
+        }
+        else
+        {
+            counter = list_size * (pageNumber-1);
+            currentPage = pageNumber;
+        }
+    }
+    public void previous()
+    {
+        counter -= list_size;
+        currentPage--;
+    }
+    
+    public void next() 
+    {
+        counter += list_size;
+        currentPage++;
+    }
+    
+    public void last() 
+    {
+        counter = total_size - math.mod(total_size, list_size);
+        currentPage = getTotalPages();
+    }
+    
+    public Boolean getDisablePrevious() 
+    { 
+        if (counter>0) 
+            return false; 
+        else
+            return true;
+    }
+    
+    public Boolean getDisableNext() 
+    {
+        if (counter + list_size < total_size)
+            return false;
+        else
+            return true;
+    }
+    
+    public Integer getTotal_size() 
+    {
+        return total_size;
+    }
+    
+    public Integer getPageNumber() 
+    {
+        return counter/list_size + 1;
+    }
+    
+    public Integer getTotalPages() 
+    {
+        if (math.mod(total_size, list_size) > 0) 
+        {
+            return total_size/list_size + 1;
+        }
+        else 
+        {
+            return (total_size/list_size);
+        }
+    }
+}

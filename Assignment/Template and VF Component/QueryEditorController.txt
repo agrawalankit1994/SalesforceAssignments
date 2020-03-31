@@ -1,0 +1,40 @@
+public class QueryEditorController
+{    
+    public String queryString{get;set;}
+    public boolean renderResult{get;set;}
+    
+    public QueryEditorController() 
+    {
+        renderResult = false ;
+    }
+    
+    public void executeThisQuery()
+    {
+        if(String.isBlank(queryString)) 
+        {
+            ApexPages.addMessage(new ApexPages.message(ApexPages.severity.ERROR,'Query is Empty'));
+            renderResult = false;
+            return;
+        }
+        try
+        {
+            Database.query(queryString);
+            renderResult = true;
+            if(queryString.containsIgnoreCase(' LIMIT'))
+            {
+                queryString = queryString.substring(0,queryString.indexOfIgnoreCase(' LIMIT')+1) + 
+                    queryString.substring(queryString.indexOfIgnoreCase(' LIMIT')+8,queryString.length());
+            }
+            if(queryString.containsIgnoreCase(' OFFSET'))
+            {
+                queryString = queryString.substring(0,queryString.indexOfIgnoreCase(' OFFSET')+1) + 
+                    queryString.substring(queryString.indexOfIgnoreCase(' OFFSET')+9,queryString.length());
+            }
+        }
+        catch(Exception e)
+        {
+            ApexPages.addMessage(new ApexPages.message(ApexPages.severity.ERROR,e.getMessage()));
+            renderResult = false;
+        }
+    }
+}

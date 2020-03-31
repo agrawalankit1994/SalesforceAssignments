@@ -1,0 +1,14 @@
+<apex:page controller="QueryEditorController">
+    <apex:form >
+        <apex:pageBlock title="Query Editor">
+            <apex:outputPanel id="QueryForm">
+                <apex:inputText value="{!queryString}" style="width : 600px;" html-placeholder="Enter your query..." />
+                <apex:commandButton value="Execute Query" action="{!executeThisQuery}" reRender="resultcomponent,QueryForm" />
+                <apex:pageMessages id="showMsg"></apex:pageMessages>
+            </apex:outputPanel>
+            <apex:outputPanel id="resultcomponent" >
+                <c:ResultComponent rendered="{!renderResult}" query="{!queryString}" /> 
+            </apex:outputPanel>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>
